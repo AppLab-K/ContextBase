@@ -78,6 +78,28 @@
         <h1 id="auth-title" class="mt-5 text-xl font-semibold text-brand-navy">ログイン</h1>
         <p id="auth-desc" class="mt-1 text-sm text-slate-500">メールアドレスとパスワードでサインインします。</p>
 
+        <div class="mt-5">
+          <button
+            type="button"
+            id="btn-google"
+            class="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-50"
+          >
+            <svg class="h-4 w-4" viewBox="0 0 48 48" aria-hidden="true">
+              <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303C33.651 32.657 29.194 36 24 36c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.968 3.032l5.657-5.657C34.049 6.053 29.243 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.651-.389-3.917z"/>
+              <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.968 3.032l5.657-5.657C34.049 6.053 29.243 4 24 4c-7.682 0-14.33 4.337-17.694 10.691z"/>
+              <path fill="#4CAF50" d="M24 44c5.092 0 9.812-1.955 13.354-5.138l-6.162-5.214C29.139 35.091 26.719 36 24 36c-5.173 0-9.62-3.323-11.293-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/>
+              <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.801 2.267-2.274 4.192-4.109 5.648l.003-.002 6.162 5.214C36.927 39.256 44 34 44 24c0-1.341-.138-2.651-.389-3.917z"/>
+            </svg>
+            Googleで続行
+          </button>
+          <p id="oauth-error" class="hidden mt-2 text-sm text-red-600"></p>
+          <div class="mt-5 flex items-center gap-3">
+            <div class="h-px flex-1 bg-slate-200"></div>
+            <span class="text-[11px] text-slate-400">または</span>
+            <div class="h-px flex-1 bg-slate-200"></div>
+          </div>
+        </div>
+
         <form id="form-login" class="mt-6 space-y-4">
           <div>
             <label for="email" class="block text-xs font-medium text-slate-600 mb-1">メールアドレス</label>
@@ -316,8 +338,10 @@
       loginError: $('login-error'),
       registerError: $('register-error'),
       registerSuccess: $('register-success'),
+      oauthError: $('oauth-error'),
       btnLogin: $('btn-login'),
       btnRegister: $('btn-register'),
+      btnGoogle: $('btn-google'),
       tabLogin: $('tab-login'),
       tabRegister: $('tab-register'),
       authTitle: $('auth-title'),
@@ -380,6 +404,28 @@
 
     els.tabLogin.addEventListener('click', () => setAuthMode('login'));
     els.tabRegister.addEventListener('click', () => setAuthMode('register'));
+
+    els.btnGoogle.addEventListener('click', async () => {
+      els.oauthError.classList.add('hidden');
+      els.btnGoogle.disabled = true;
+      if (!supabaseConfigured) {
+        els.oauthError.textContent = 'Supabase の URL と anon キーを index.html 内の定数に設定してください。';
+        els.oauthError.classList.remove('hidden');
+        els.btnGoogle.disabled = false;
+        return;
+      }
+      // OAuth は通常 http(s) 配信が必要（file:// では失敗しやすい）
+      const redirectTo = window.location.href.split('#')[0];
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo },
+      });
+      if (error) {
+        els.oauthError.textContent = error.message;
+        els.oauthError.classList.remove('hidden');
+        els.btnGoogle.disabled = false;
+      }
+    });
 
     function showAuthUI(session) {
       const authed = !!session;
@@ -638,6 +684,7 @@
       const {
         data: { session },
       } = await supabase.auth.getSession();
+      setAuthMode(authMode);
       showAuthUI(session);
       if (session) initChatWelcome();
       renderFileList();
