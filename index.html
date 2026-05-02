@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>社内規定QA | 社内ポータル</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              navy: '#1a2d4a',
+              slate: '#3d4f66',
+              mist: '#f4f6f9',
+            },
+          },
+          fontFamily: {
+            sans: ['"Segoe UI"', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Meiryo', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .scrollbar-thin {
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 transparent;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-brand-mist text-slate-800 antialiased">
+  <!-- ログイン画面 -->
+  <div id="view-login" class="min-h-screen flex flex-col">
+    <header class="border-b border-slate-200/80 bg-white/90 backdrop-blur-sm sticky top-0 z-40">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="h-8 w-8 rounded-lg bg-brand-navy flex items-center justify-center text-white text-sm font-semibold shrink-0">規</span>
+          <div class="min-w-0">
+            <p class="text-sm font-semibold text-brand-navy truncate">社内規定QA</p>
+            <p class="text-[10px] text-slate-500 hidden sm:block">B2B 社内コンプライアンス向け</p>
+          </div>
+        </div>
+        <a
+          id="header-upgrade-login"
+          href="#"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="shrink-0 inline-flex items-center justify-center rounded-lg bg-brand-navy px-3 py-2 text-xs font-medium text-white shadow-sm hover:bg-brand-slate transition-colors"
+        >
+          アップグレード
+        </a>
+      </div>
+    </header>
+    <main class="flex-1 flex items-center justify-center p-4 sm:p-8">
+      <div class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
+        <h1 class="text-xl font-semibold text-brand-navy">ログイン</h1>
+        <p class="mt-1 text-sm text-slate-500">Supabase Auth（メール・パスワード）でサインインします。</p>
+        <form id="form-login" class="mt-6 space-y-4">
+          <div>
+            <label for="email" class="block text-xs font-medium text-slate-600 mb-1">メールアドレス</label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autocomplete="email"
+              required
+              class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none ring-brand-navy/20 focus:border-brand-navy focus:ring-2"
+              placeholder="you@company.com"
+            />
+          </div>
+          <div>
+            <label for="password" class="block text-xs font-medium text-slate-600 mb-1">パスワード</label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              required
+              class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none ring-brand-navy/20 focus:border-brand-navy focus:ring-2"
+              placeholder="••••••••"
+            />
+          </div>
+          <p id="login-error" class="hidden text-sm text-red-600"></p>
+          <button
+            type="submit"
+            id="btn-login"
+            class="w-full rounded-lg bg-brand-navy py-2.5 text-sm font-medium text-white hover:bg-brand-slate transition-colors disabled:opacity-50"
+          >
+            ログイン
+          </button>
+        </form>
+        <p class="mt-4 text-xs text-slate-400 text-center">
+          <code class="text-[10px] bg-slate-100 px-1 rounded">@supabase/supabase-js</code> を読み込み済みです。URL と anon キーを設定してください。
+        </p>
+      </div>
+    </main>
+  </div>
+
+  <!-- アプリ本体（ログイン後） -->
+  <div id="view-app" class="hidden min-h-screen flex flex-col">
+    <header class="border-b border-slate-200/80 bg-white sticky top-0 z-40 shadow-sm">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex items-center gap-3 min-w-0">
+          <span class="h-9 w-9 rounded-xl bg-brand-navy flex items-center justify-center text-white text-sm font-semibold shrink-0">規</span>
+          <div class="min-w-0">
+            <p class="text-sm font-semibold text-brand-navy truncate">社内規定QA</p>
+            <p id="header-email" class="text-xs text-slate-500 truncate"></p>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 sm:justify-end">
+          <nav class="flex rounded-lg border border-slate-200 bg-slate-50 p-0.5" aria-label="画面切替">
+            <button
+              type="button"
+              data-screen="chat"
+              class="nav-tab px-3 py-1.5 text-xs font-medium rounded-md text-slate-600 hover:text-brand-navy transition-colors"
+            >
+              チャット
+            </button>
+            <button
+              type="button"
+              data-screen="admin"
+              class="nav-tab px-3 py-1.5 text-xs font-medium rounded-md text-slate-600 hover:text-brand-navy transition-colors"
+            >
+              資料管理
+            </button>
+          </nav>
+          <a
+            id="header-upgrade"
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center justify-center rounded-lg bg-brand-navy px-3 py-2 text-xs font-medium text-white hover:bg-brand-slate transition-colors"
+          >
+            アップグレード
+          </a>
+          <button
+            type="button"
+            id="btn-logout"
+            class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+          >
+            ログアウト
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- チャット画面 -->
+    <main id="screen-chat" class="hidden flex-1 flex flex-col max-w-6xl w-full mx-auto px-4 sm:px-6 py-4 sm:py-6 min-h-0">
+      <div class="rounded-2xl border border-slate-200 bg-white shadow-sm flex flex-col flex-1 min-h-[420px] sm:min-h-[560px] max-h-[calc(100vh-8rem)]">
+        <div class="px-4 sm:px-5 py-3 border-b border-slate-100 flex items-center justify-between gap-2">
+          <div>
+            <h2 class="text-sm font-semibold text-brand-navy">規定に関する質問</h2>
+            <p class="text-xs text-slate-500 mt-0.5">アップロード済みの資料を参照して回答します（Edge Function 連携想定）。</p>
+          </div>
+        </div>
+        <div id="chat-messages" class="flex-1 overflow-y-auto scrollbar-thin px-4 sm:px-5 py-4 space-y-4 bg-slate-50/50"></div>
+        <div class="p-3 sm:p-4 border-t border-slate-100 bg-white rounded-b-2xl">
+          <div class="flex flex-col sm:flex-row gap-2 sm:items-end">
+            <label class="flex-1 block">
+              <span class="sr-only">質問を入力</span>
+              <textarea
+                id="chat-input"
+                rows="2"
+                class="w-full resize-none rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none ring-brand-navy/20 focus:border-brand-navy focus:ring-2"
+                placeholder="例：リモートワーク時の勤怠申請はどうすればよいですか？"
+              ></textarea>
+            </label>
+            <button
+              type="button"
+              id="btn-send"
+              class="shrink-0 rounded-xl bg-brand-navy px-5 py-2.5 text-sm font-medium text-white hover:bg-brand-slate disabled:opacity-50 transition-colors"
+            >
+              送信
+            </button>
+          </div>
+          <p id="chat-hint" class="mt-2 text-[11px] text-slate-400"></p>
+        </div>
+      </div>
+    </main>
+
+    <!-- 管理画面 -->
+    <main id="screen-admin" class="hidden flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-4 sm:py-6">
+      <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div class="px-4 sm:px-6 py-4 border-b border-slate-100">
+          <h2 class="text-sm font-semibold text-brand-navy">PDF アップロード</h2>
+          <p class="text-xs text-slate-500 mt-1">社内規定などの PDF をドラッグ＆ドロップするか、ファイルを選択してください。Storage バケット <code class="text-[10px] bg-slate-100 px-1 rounded">regulations-pdfs</code> へ保存します。</p>
+        </div>
+        <div class="p-4 sm:p-6">
+          <div
+            id="drop-zone"
+            class="relative rounded-xl border-2 border-dashed border-slate-300 bg-brand-mist/50 px-4 py-10 sm:py-14 text-center transition-colors hover:border-brand-navy/40 hover:bg-white cursor-pointer"
+          >
+            <input id="file-input" type="file" accept="application/pdf,.pdf" multiple class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+            <div class="pointer-events-none">
+              <svg class="mx-auto h-10 w-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+              <p class="mt-3 text-sm font-medium text-brand-navy">PDF をドロップ</p>
+              <p class="mt-1 text-xs text-slate-500">またはクリックして選択（複数可）</p>
+            </div>
+          </div>
+          <p id="upload-status" class="mt-3 text-xs text-slate-600 min-h-[1.25rem]"></p>
+          <div class="mt-6">
+            <h3 class="text-xs font-semibold text-slate-600 uppercase tracking-wide">アップロード済み（このセッション）</h3>
+            <ul id="file-list" class="mt-2 divide-y divide-slate-100 rounded-lg border border-slate-100 bg-slate-50/50 text-sm"></ul>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.8';
+
+    // --- 設定（本番では環境に合わせて差し替え） ---
+    const SUPABASE_URL = 'https://YOUR_PROJECT_REF.supabase.co';
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+    /** Stripe Payment Link（ダッシュボードで発行した URL） */
+    const STRIPE_PAYMENT_LINK = 'https://buy.stripe.com/YOUR_PAYMENT_LINK';
+    /** 質問応答用 Edge Function 名（未デプロイ時はローカルモック応答） */
+    const QA_FUNCTION_NAME = 'regulations-qa';
+    const STORAGE_BUCKET = 'regulations-pdfs';
+
+    const supabaseConfigured =
+      SUPABASE_URL.startsWith('https://') &&
+      !SUPABASE_URL.includes('YOUR_PROJECT') &&
+      SUPABASE_ANON_KEY &&
+      !SUPABASE_ANON_KEY.includes('YOUR_SUPABASE');
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession: true, autoRefreshToken: true },
+    });
+
+    const $ = (id) => document.getElementById(id);
+
+    const els = {
+      viewLogin: $('view-login'),
+      viewApp: $('view-app'),
+      formLogin: $('form-login'),
+      loginError: $('login-error'),
+      btnLogin: $('btn-login'),
+      headerEmail: $('header-email'),
+      btnLogout: $('btn-logout'),
+      headerUpgrade: $('header-upgrade'),
+      headerUpgradeLogin: $('header-upgrade-login'),
+      screenChat: $('screen-chat'),
+      screenAdmin: $('screen-admin'),
+      chatMessages: $('chat-messages'),
+      chatInput: $('chat-input'),
+      btnSend: $('btn-send'),
+      chatHint: $('chat-hint'),
+      dropZone: $('drop-zone'),
+      fileInput: $('file-input'),
+      uploadStatus: $('upload-status'),
+      fileList: $('file-list'),
+    };
+
+    els.headerUpgrade.href = STRIPE_PAYMENT_LINK;
+    els.headerUpgradeLogin.href = STRIPE_PAYMENT_LINK;
+
+    let currentScreen = 'chat';
+    const uploadedFiles = [];
+
+    function setStripeLinks() {
+      const invalid = !STRIPE_PAYMENT_LINK || STRIPE_PAYMENT_LINK.includes('YOUR_PAYMENT');
+      if (invalid) {
+        els.headerUpgrade.classList.add('pointer-events-none', 'opacity-50');
+        els.headerUpgradeLogin.classList.add('pointer-events-none', 'opacity-50');
+        els.headerUpgrade.title = 'STRIPE_PAYMENT_LINK を設定してください';
+        els.headerUpgradeLogin.title = 'STRIPE_PAYMENT_LINK を設定してください';
+      }
+    }
+    setStripeLinks();
+
+    function showAuthUI(session) {
+      const authed = !!session;
+      els.viewLogin.classList.toggle('hidden', authed);
+      els.viewApp.classList.toggle('hidden', !authed);
+      if (authed) {
+        els.headerEmail.textContent = session.user.email ?? '';
+        setScreen(currentScreen);
+      }
+    }
+
+    function setScreen(name) {
+      currentScreen = name;
+      els.screenChat.classList.toggle('hidden', name !== 'chat');
+      els.screenAdmin.classList.toggle('hidden', name !== 'admin');
+      document.querySelectorAll('.nav-tab').forEach((btn) => {
+        const active = btn.getAttribute('data-screen') === name;
+        btn.classList.toggle('bg-white', active);
+        btn.classList.toggle('shadow-sm', active);
+        btn.classList.toggle('text-brand-navy', active);
+        btn.classList.toggle('text-slate-600', !active);
+      });
+    }
+
+    document.querySelectorAll('.nav-tab').forEach((btn) => {
+      btn.addEventListener('click', () => setScreen(btn.getAttribute('data-screen')));
+    });
+
+    function appendMessage(role, text, isTyping = false) {
+      const wrap = document.createElement('div');
+      wrap.className = role === 'user' ? 'flex justify-end' : 'flex justify-start';
+      const bubble = document.createElement('div');
+      bubble.className =
+        role === 'user'
+          ? 'max-w-[85%] sm:max-w-[70%] rounded-2xl rounded-br-md bg-brand-navy text-white px-4 py-2.5 text-sm shadow-sm'
+          : 'max-w-[85%] sm:max-w-[70%] rounded-2xl rounded-bl-md bg-white border border-slate-200 text-slate-800 px-4 py-2.5 text-sm shadow-sm';
+      if (isTyping) bubble.classList.add('animate-pulse');
+      bubble.textContent = text;
+      wrap.appendChild(bubble);
+      els.chatMessages.appendChild(wrap);
+      els.chatMessages.scrollTop = els.chatMessages.scrollHeight;
+      return bubble;
+    }
+
+    function initChatWelcome() {
+      els.chatMessages.innerHTML = '';
+      appendMessage(
+        'assistant',
+        'こんにちは。社内規定やアップロード済み資料について質問してください。回答は Supabase Edge Function（' +
+          QA_FUNCTION_NAME +
+          '）経由の想定です。未設定の場合はデモ応答を返します。'
+      );
+    }
+
+    els.formLogin.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      els.loginError.classList.add('hidden');
+      els.btnLogin.disabled = true;
+      const email = $('email').value.trim();
+      const password = $('password').value;
+      if (!supabaseConfigured) {
+        els.loginError.textContent = 'Supabase の URL と anon キーを index.html 内の定数に設定してください。';
+        els.loginError.classList.remove('hidden');
+        els.btnLogin.disabled = false;
+        return;
+      }
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        els.loginError.textContent = error.message;
+        els.loginError.classList.remove('hidden');
+      }
+      els.btnLogin.disabled = false;
+    });
+
+    els.btnLogout.addEventListener('click', async () => {
+      await supabase.auth.signOut();
+    });
+
+    async function invokeQA(question) {
+      if (!supabaseConfigured) {
+        return { text: '（デモ）Supabase 未設定のためモック回答です。「' + question.slice(0, 40) + '…」については、該当する規定条文を確認し、人事または法務へ照会してください。' };
+      }
+      const { data, error } = await supabase.functions.invoke(QA_FUNCTION_NAME, {
+        body: { question },
+      });
+      if (error) {
+        return {
+          text:
+            'Edge Function の呼び出しに失敗しました（' +
+            (error.message || 'error') +
+            '）。関数 `' +
+            QA_FUNCTION_NAME +
+            '` をデプロイするか、CORS・認証設定を確認してください。デモとしてローカル応答を表示します：\n\n「' +
+            question.slice(0, 80) +
+            '」に関する回答は、最新の社内規定 PDF を参照して判断してください。',
+        };
+      }
+      const answer = typeof data?.answer === 'string' ? data.answer : data?.message ?? JSON.stringify(data);
+      return { text: answer };
+    }
+
+    els.btnSend.addEventListener('click', sendChat);
+    els.chatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendChat();
+      }
+    });
+
+    async function sendChat() {
+      const q = els.chatInput.value.trim();
+      if (!q) return;
+      els.chatInput.value = '';
+      appendMessage('user', q);
+      const typingBubble = appendMessage('assistant', '回答を生成しています…', true);
+      els.btnSend.disabled = true;
+      try {
+        const { text } = await invokeQA(q);
+        typingBubble.classList.remove('animate-pulse');
+        typingBubble.textContent = text;
+      } catch (err) {
+        typingBubble.classList.remove('animate-pulse');
+        typingBubble.textContent = 'エラーが発生しました。しばらくしてから再度お試しください。';
+      }
+      els.btnSend.disabled = false;
+      els.chatMessages.scrollTop = els.chatMessages.scrollHeight;
+    }
+
+    function renderFileList() {
+      els.fileList.innerHTML = '';
+      if (uploadedFiles.length === 0) {
+        const li = document.createElement('li');
+        li.className = 'px-4 py-6 text-center text-xs text-slate-400';
+        li.textContent = 'まだファイルがありません';
+        els.fileList.appendChild(li);
+        return;
+      }
+      uploadedFiles.forEach((f) => {
+        const li = document.createElement('li');
+        li.className = 'px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1';
+        li.innerHTML =
+          '<span class="text-slate-800 font-medium truncate">' +
+          escapeHtml(f.name) +
+          '</span><span class="text-xs text-slate-500">' +
+          escapeHtml(f.status) +
+          '</span>';
+        els.fileList.appendChild(li);
+      });
+    }
+
+    function escapeHtml(s) {
+      const d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    async function handleFiles(fileList) {
+      const files = Array.from(fileList).filter((f) => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'));
+      if (files.length === 0) {
+        els.uploadStatus.textContent = 'PDF ファイルのみアップロードできます。';
+        return;
+      }
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) return;
+
+      for (const file of files) {
+        const entry = { name: file.name, status: 'アップロード中…' };
+        uploadedFiles.unshift(entry);
+        renderFileList();
+        if (!supabaseConfigured) {
+          entry.status = '（デモ）Storage 未設定のためスキップ';
+          renderFileList();
+          continue;
+        }
+        const path = session.user.id + '/' + Date.now() + '_' + file.name.replace(/[^\w.-]/g, '_');
+        const { error } = await supabase.storage.from(STORAGE_BUCKET).upload(path, file, {
+          contentType: 'application/pdf',
+          upsert: false,
+        });
+        entry.status = error ? '失敗: ' + error.message : '完了: ' + path;
+        renderFileList();
+      }
+      els.uploadStatus.textContent = files.length + ' 件を処理しました。';
+    }
+
+    els.fileInput.addEventListener('change', (e) => {
+      if (e.target.files?.length) handleFiles(e.target.files);
+      e.target.value = '';
+    });
+
+    ['dragenter', 'dragover'].forEach((ev) => {
+      els.dropZone.addEventListener(ev, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        els.dropZone.classList.add('border-brand-navy', 'bg-white');
+      });
+    });
+    ['dragleave', 'drop'].forEach((ev) => {
+      els.dropZone.addEventListener(ev, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (ev !== 'drop') els.dropZone.classList.remove('border-brand-navy', 'bg-white');
+      });
+    });
+    els.dropZone.addEventListener('drop', (e) => {
+      els.dropZone.classList.remove('border-brand-navy', 'bg-white');
+      if (e.dataTransfer?.files?.length) handleFiles(e.dataTransfer.files);
+    });
+
+    supabase.auth.onAuthStateChange((_event, session) => {
+      showAuthUI(session);
+      if (session) initChatWelcome();
+    });
+
+    (async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      showAuthUI(session);
+      if (session) initChatWelcome();
+      renderFileList();
+
+      if (!supabaseConfigured) {
+        els.chatHint.textContent =
+          'Supabase URL / anon キーを設定するとログイン・Storage・Edge Function が有効になります。';
+      } else {
+        els.chatHint.textContent = 'Shift+Enter で改行。送信は Enter または「送信」ボタン。';
+      }
+    })();
+  </script>
+</body>
+</html>
