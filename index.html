@@ -638,6 +638,7 @@
       const {
         data: { session },
       } = await supabase.auth.getSession();
+      setAuthMode(authMode);
       showAuthUI(session);
       if (session) initChatWelcome();
       renderFileList();
